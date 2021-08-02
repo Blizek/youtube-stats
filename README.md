@@ -1,1 +1,2 @@
-# youtube-stats
+# YouTube Stats
+Website where you'll be able to check your favorite YT channel stats or add. There'll be possible to check last views, difference between minutes, hours and days, subscription difference and more! All will be make in Python and Django
