@@ -33,7 +33,7 @@ def search(request):
 
     for channel in channels:
         print(channel, upper_key)
-        if upper_key in channel.name or upper_key in channel.url or upper_key in channel.custom_url:
+        if channel.name in upper_key or channel.url in upper_key or channel.custom_url in upper_key:
             possible_channels.append(channel)
 
     context = {
