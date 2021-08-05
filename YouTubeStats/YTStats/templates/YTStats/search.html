@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search for "{{ key }}"</title>
+</head>
+<body>
+    {% if channels %}
+        <ul>
+        {% for channel in channels %}
+            <li><a href="{% url 'YouTubeStats:channel' channel.id %}">{{ channel.name }}</a></li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>There no channels with that name or URL</p>
+    {% endif %}
+</body>
+</html>

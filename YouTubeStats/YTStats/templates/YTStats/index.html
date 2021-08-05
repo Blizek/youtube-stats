@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>YOUTUBE CHANNELS STATS</title>
+</head>
+<body>
+    <h1>Welcome on our stage!</h1>
+    <p class="lead text-muted">Get YouTube channels stats!</p>
+    <form action="{% url 'YouTubeStats:search' %}" method="POST">
+        {% csrf_token %}
+        <input type="text" id="search" name="search" class="form-control" placeholder="Channel name">
+    <p>
+        <button type="submit">Search</button>
+    </p>
+    </form>
+</body>
+</html>
