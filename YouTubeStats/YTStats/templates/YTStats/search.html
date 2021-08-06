@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Search for "{{ key }}"</title>
+    <title>Search channel</title>
 </head>
 <body>
     {% if channels %}
@@ -11,8 +11,10 @@
             <li><a href="{% url 'YouTubeStats:channel' channel.id %}">{{ channel.name }}</a></li>
         {% endfor %}
         </ul>
+            <a href="{% url 'YouTubeStats:add' key %}">If there isn't channel which you're looking for, you can add this channel there!</a>
     {% else %}
-        <p>There no channels with that name or URL</p>
+        <p>There no channels with that name</p>
+        <a href="{% url 'YouTubeStats:add' key %}">You can add this channel there!</a>
     {% endif %}
 </body>
 </html>

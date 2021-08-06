@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add channel</title>
+</head>
+<body>
+    <h1>Returns for {{ search_key }}:</h1>
+    {% if channels %}
+        {% for channel in channels %}
+            <a href="{% url 'YouTubeStats:adding_channel' channel.yt_id %}">
+                <p>Title:{{ channel.name }}, subscriptions:{{ channel.subscriptions }}, views:{{ channel.views }}, uploads:{{ channel.uploads }}</p>
+            </a>
+        {% endfor %}
+    {% else %}
+        <p>There is any channel with that name.</p>
+        <a href="{% url 'YouTubeStats:index' %}">Go back to main page</a>
+    {% endif %}
+</body>
+</html>
