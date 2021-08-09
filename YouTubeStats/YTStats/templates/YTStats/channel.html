@@ -2,9 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>{{ name }}'s YouTube Stats</title>
 </head>
 <body>
-
+    <p>
+        <img src="{{ channel.thumbnail }}" height="100px", width="100px">
+        {{ channel.name }}
+    </p>
+    <p>
+        UPLOADS: {{ channel.uploads }}  SUBSCRIBERS: {{ channel.subscriptions }}    VIDEO VIEWS: {{ channel.views }}
+        COUNTRY: {{ channel.country }}  USER CREATED: {{ channel.publishedAt }}
+    </p>
 </body>
 </html>

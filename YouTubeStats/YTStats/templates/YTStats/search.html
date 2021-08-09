@@ -8,7 +8,10 @@
     {% if channels %}
         <ul>
         {% for channel in channels %}
-            <li><a href="{% url 'YouTubeStats:channel' channel.id %}">{{ channel.name }}</a></li>
+            <li>
+                <img height="88px" width="88px" src="{{ channel.thumbnail }}">
+                <a href="{% url 'YouTubeStats:channel' channel.id %}">Title:{{ channel.name }}, subscriptions:{{ channel.subscriptions }}, views:{{ channel.views }}, uploads:{{channel.uploads }}</a>
+            </li>
         {% endfor %}
         </ul>
             <a href="{% url 'YouTubeStats:add' key %}">If there isn't channel which you're looking for, you can add this channel there!</a>

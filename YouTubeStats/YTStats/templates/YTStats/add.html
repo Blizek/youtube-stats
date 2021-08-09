@@ -9,7 +9,10 @@
     {% if channels %}
         {% for channel in channels %}
             <a href="{% url 'YouTubeStats:adding_channel' channel.yt_id %}">
-                <p>Title:{{ channel.name }}, subscriptions:{{ channel.subscriptions }}, views:{{ channel.views }}, uploads:{{ channel.uploads }}</p>
+                <p>
+                    <img height="88px" width="88px" src="{{ channel.thumbnail }}">
+                    Title:{{ channel.name }}, subscriptions:{{ channel.subscriptions }}, views:{{ channel.views }}, uploads:{{ channel.uploads }}
+                </p>
             </a>
         {% endfor %}
     {% else %}
