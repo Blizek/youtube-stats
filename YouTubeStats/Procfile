@@ -1,1 +1,1 @@
-web: gunicorn YouTubeStats.wsgi --log-file -
+web: gunicorn YouTubeStats.wsgi
