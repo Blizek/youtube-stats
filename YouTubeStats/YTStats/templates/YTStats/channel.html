@@ -13,5 +13,10 @@
         UPLOADS: {{ channel.uploads }}  SUBSCRIBERS: {{ channel.subscriptions }}    VIDEO VIEWS: {{ channel.views }}
         COUNTRY: {{ channel.country }}  USER CREATED: {{ channel.publishedAt }}
     </p>
+    <p>
+        <button><a href="{% url 'YouTubeStats:subscriptions' id %}">SUBSCRIBERS</a></button>
+        <button><a href="{% url 'YouTubeStats:views' id %}">TOTAL VIEWS</a></button>
+        <button><a href="{% url 'YouTubeStats:videos' id 'date' %}">USER VIDEOS</a></button>
+    </p>
 </body>
 </html>

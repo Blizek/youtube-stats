@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ name }}'s videos</title>
+</head>
+<body>
+    <h3>50 LATEST YOUTUBE VIDEOS BY {{ name }}</h3>
+    <p>
+        <button><a href="{% url 'YouTubeStats:videos' id 'date' %}">50 Latest Videos</a></button>
+        <button><a href="{% url 'YouTubeStats:videos' id 'viewCount' %}">50 Most Viewed Videos</a></button>
+        <button><a href="{% url 'YouTubeStats:videos' id 'rating' %}">50 Highest Rated</a></button>
+        <button><a href="{% url 'YouTubeStats:videos' id 'relevance' %}">50 Most Relevant</a></button>
+        <button><a href="{% url 'YouTubeStats:videos' id 'title' %}">50 Sorted Alphabetically By Title</a></button>
+    </p>
+    DATE    VIDEO TITLE                 VIEWS     RATING%  COMMENTS
+    {% if videos %}
+    <ul>
+        {% for video in videos %}
+        <li>
+            <img src="{{ video.thumbnail }}" width="120px" height="90px">
+            {{ video.publishedAt }}     <a href="{{ video.videoUrl }}">{{ video.title }}</a>    {{ video.views }}     {{ video.likesRatio }}%    {{ video.comments }}
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+        <p>This channel has no videos</p>
+    {% endif %}
+</body>
+</html>

@@ -1,15 +1,41 @@
 import requests
+import schedule
+from datetime import datetime
+import time
 
+
+from django.utils import timezone
 from django.http import HttpResponse
 from django.template import loader
 from django.conf import settings
 from django.shortcuts import render, redirect
 
-from .models import Channel
+from .models import Channel, Subscriptions
 
 
 def subs_sort(channel):
     return int(channel['subscriptions'])
+
+
+def add_commas(views):
+    views = views[::-1]
+    iterations = []
+    for i in range(3, len(views) + 3, 3):
+        iterations.append(views[i - 3: i][::-1])
+    views = ','.join(iterations[::-1])
+    return views
+
+
+def covert_date(date):
+    return date[8:10] + '.' + date[5:7] + '.' + date[:4]
+
+
+def add_prefix(number):
+    if 1_000 <= number < 1_000_000:
+        return str(number / 1_000) + 'K'
+    elif 1_000_000 <= number < 1_000_000_000:
+        return str(number / 1_000_000) + 'M'
+    return number
 
 
 def index(request):
@@ -55,6 +81,11 @@ def search(request):
 
         channels.sort(key=subs_sort, reverse=True)
 
+        for channel in channels:
+            channel['subscriptions'] = add_prefix(int(channel['subscriptions']))
+            channel['views'] = add_commas(str(channel['views']))
+            channel['uploads'] = add_commas(str(channel['uploads']))
+
     context = {
         'key': key,
         'channels': channels
@@ -80,24 +111,22 @@ def channel(request, id):
 
     channel_data = {
         'name': result['snippet']['title'],
-        'publishedAt': result['snippet']['publishedAt'],
+        'publishedAt': covert_date(result['snippet']['publishedAt']),
         'thumbnail': result['snippet']['thumbnails']['default']['url'],
-        'country': result['snippet']['country'],
-        'views': result['statistics']['viewCount'],
-        'subscriptions': result['statistics']['subscriberCount'],
-        'uploads': result['statistics']['videoCount']
+        'views': add_commas(str(result['statistics']['viewCount'])),
+        'subscriptions': add_prefix(int(result['statistics']['subscriberCount'])),
+        'uploads': add_commas(str(result['statistics']['videoCount']))
     }
 
-    if 1_000 <= int(channel_data['subscriptions']) < 1_000_000:
-        channel_data['subscriptions'] = str(int(channel_data['subscriptions']) / 1_000) + 'K'
-    elif 1_000_000 <= int(channel_data['subscriptions']) < 1_000_000_000:
-        channel_data['subscriptions'] = str(int(channel_data['subscriptions']) / 1_000_000) + 'M'
-
-    channel_data['publishedAt'] = channel_data['publishedAt'][8:10] + '.' + channel_data['publishedAt'][5:7] + '.' + channel_data['publishedAt'][:4]
+    try:
+        channel_data['country'] = str(result['snippet']['country'])
+    except KeyError:
+        channel_data['country'] = ""
 
     context = {
         'name': channel_name,
-        'channel': channel_data
+        'channel': channel_data,
+        'id': id
     }
 
     return render(request, 'YTStats/channel.html', context)
@@ -154,6 +183,11 @@ def add(request, key):
 
         channels.sort(key=subs_sort, reverse=True)
 
+        for channel in channels:
+            channel['subscriptions'] = add_prefix(int(channel['subscriptions']))
+            channel['views'] = add_commas(str(channel['views']))
+            channel['uploads'] = add_commas(str(channel['uploads']))
+
     context = {
         'search_key': key,
         'channels': channels
@@ -176,7 +210,10 @@ def adding_channel(request, yt_id):
 
     name = result['snippet']['title']
     upper_name = name.upper()
-    custom = result['snippet']['customUrl']
+    try:
+        custom = result['snippet']['customUrl']
+    except KeyError:
+        custom = ""
     custom_url = ""
     if len(custom) != 0:
         custom_url = "HTTPS://WWW.YOUTUBE.COM/C/" + custom.upper()
@@ -190,3 +227,115 @@ def adding_channel(request, yt_id):
         'id': c.id
     }
     return render(request, 'YTStats/adding.html', context)
+
+
+def subscriptions(request, id):
+    channel_yt_id = Channel.objects.get(pk=id).yt_id
+    channel_name = Channel.objects.get(pk=id).name
+
+    channel_url = 'https://www.googleapis.com/youtube/v3/channels'
+
+    channel_params = {
+        'key': settings.YOUTUBE_DATA_API_KEY,
+        'part': 'statistics',
+        'id': channel_yt_id
+    }
+
+    r = requests.get(channel_url, params=channel_params)
+
+    result = r.json()['items'][0]
+
+    context = {
+        'name': channel_name,
+        'subs': add_commas(result['statistics']['subscriberCount']),
+        'date': datetime.now()
+    }
+
+    return render(request, 'YTStats/subscriptions.html', context)
+
+
+def views(request, id):
+    channel_yt_id = Channel.objects.get(pk=id).yt_id
+    channel_name = Channel.objects.get(pk=id).name
+
+    channel_url = 'https://www.googleapis.com/youtube/v3/channels'
+
+    channel_params = {
+        'key': settings.YOUTUBE_DATA_API_KEY,
+        'part': 'statistics',
+        'id': channel_yt_id
+    }
+
+    r = requests.get(channel_url, params=channel_params)
+
+    result = r.json()['items'][0]
+
+    context = {
+        'name': channel_name,
+        'views': add_commas(result['statistics']['viewCount']),
+        'date': datetime.now()
+    }
+
+    return render(request, 'YTStats/views.html', context)
+
+
+def videos(request, id, type_of_sort):
+    channel_yt_id = Channel.objects.get(pk=id).yt_id
+    channel_name = Channel.objects.get(pk=id).name
+
+    search_url = 'https://www.googleapis.com/youtube/v3/search'
+    video_url = 'https://www.googleapis.com/youtube/v3/videos'
+
+    search_params = {
+        'key': settings.YOUTUBE_DATA_API_KEY,
+        'part': 'snippet',
+        'channelId': channel_yt_id,
+        'maxResults': 50,
+        'type': 'video',
+        'order': type_of_sort,
+        'q': channel_name,
+    }
+
+    r = requests.get(search_url, params=search_params)
+
+    results = r.json()['items']
+
+    videos_id_list = []
+
+    for result in results:
+        videos_id_list.append(result['id']['videoId'])
+
+    video_params = {
+        'key': settings.YOUTUBE_DATA_API_KEY,
+        'part': 'snippet, statistics',
+        'id': ','.join(videos_id_list),
+        'maxResults': 50
+    }
+
+    r = requests.get(video_url, params=video_params)
+
+    results = r.json()['items']
+
+    videos_data_list = []
+
+    for result in results:
+        video_data = {
+            'title': result['snippet']['title'],
+            'publishedAt': covert_date(result['snippet']['publishedAt']),
+            'thumbnail': result['snippet']['thumbnails']['default']['url'],
+            'views': add_commas(result['statistics']['viewCount']),
+            'comments': add_commas(result['statistics']['commentCount']),
+            'likesRatio': round(100 * int(result['statistics']['likeCount']) / (
+                        int(result['statistics']['dislikeCount']) + int(result['statistics']['likeCount'])), 1),
+            'videoUrl': 'https://www.youtube.com/watch?v=' + result['id']
+        }
+
+        videos_data_list.append(video_data)
+
+    context = {
+        'videos': videos_data_list,
+        'name': channel_name,
+        'id': id
+    }
+
+    return render(request, 'YTStats/videos.html', context)

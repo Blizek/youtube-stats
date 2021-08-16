@@ -10,3 +10,12 @@ class Channel(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Subscriptions(models.Model):
+    subs_id = models.ForeignKey(Channel, on_delete=models.CASCADE)
+    subs_value = models.IntegerField(default=0)
+    update_date = models.DateTimeField('update date')
+
+    def __str__(self):
+        return str(self.subs_value)
