@@ -34,9 +34,15 @@ def convert_timezone(timezone_date):
 
 def add_prefix(number):
     if 1_000 <= number < 1_000_000:
-        return str(number / 1_000) + 'K'
+        shorter = number / 1_000
+        if shorter % 1 == 0:
+            shorter = int(shorter)
+        return str(shorter) + 'K'
     elif 1_000_000 <= number < 1_000_000_000:
-        return str(number / 1_000_000) + 'M'
+        shorter = number / 1_000_000
+        if shorter % 1 == 0:
+            shorter = int(shorter)
+        return str(shorter) + 'M'
     return number
 
 
