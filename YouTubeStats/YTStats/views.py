@@ -110,7 +110,7 @@ def channel(request, id):
 
     channel_params = {
         'key': settings.YOUTUBE_DATA_API_KEY,
-        'part': 'snippet, statistics',
+        'part': 'snippet, statistics, brandingSettings',
         'id': yt_id_db
     }
 
@@ -132,6 +132,11 @@ def channel(request, id):
         channel_data['country'] = str(result['snippet']['country'])
     except KeyError:
         channel_data['country'] = ""
+
+    try:
+        channel_data['banner'] = result['brandingSettings']['image']['bannerExternalUrl']
+    except KeyError:
+        channel_data['banner'] = ""
 
     search_params = {
         'key': settings.YOUTUBE_DATA_API_KEY,
