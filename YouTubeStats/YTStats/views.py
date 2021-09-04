@@ -1,14 +1,11 @@
 import requests
-import schedule
 from datetime import datetime
-import time
-
 
 from django.utils import timezone
 from django.http import HttpResponse
 from django.template import loader
 from django.conf import settings
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 
 from .models import Channel, Subscriptions
 
@@ -28,6 +25,11 @@ def add_commas(views):
 
 def covert_date(date):
     return date[8:10] + '.' + date[5:7] + '.' + date[:4]
+
+
+def convert_timezone(timezone_date):
+    data = str(covert_date(str(timezone_date)) + ' ' + str(timezone_date)[11:19])
+    return data
 
 
 def add_prefix(number):
@@ -245,10 +247,22 @@ def subscriptions(request, id):
 
     result = r.json()['items'][0]
 
+    c = Channel.objects.get(pk=id)
+    c.subscriptions_set.create(subs_value=result['statistics']['subscriberCount'], update_date=timezone.now())
+
+    converted_data = []
+
+    for subscription_data in c.subscriptions_set.all():
+        data = {
+            'subs_value': add_prefix(subscription_data.subs_value),
+            'update_date': convert_timezone(subscription_data.update_date)
+        }
+
+        converted_data.append(data)
+
     context = {
         'name': channel_name,
-        'subs': add_commas(result['statistics']['subscriberCount']),
-        'date': datetime.now()
+        'subscriptions_data': converted_data
     }
 
     return render(request, 'YTStats/subscriptions.html', context)
@@ -270,10 +284,22 @@ def views(request, id):
 
     result = r.json()['items'][0]
 
+    c = Channel.objects.get(pk=id)
+    c.views_set.create(views_value=result['statistics']['viewCount'], update_date=timezone.now())
+
+    converted_data = []
+
+    for views_data in c.views_set.all():
+        data = {
+            'views_value': add_commas(str(views_data.views_value)),
+            'update_date': convert_timezone(views_data.update_date)
+        }
+
+        converted_data.append(data)
+
     context = {
         'name': channel_name,
-        'views': add_commas(result['statistics']['viewCount']),
-        'date': datetime.now()
+        'views_data': converted_data
     }
 
     return render(request, 'YTStats/views.html', context)
@@ -326,7 +352,7 @@ def videos(request, id, type_of_sort):
             'views': add_commas(result['statistics']['viewCount']),
             'comments': add_commas(result['statistics']['commentCount']),
             'likesRatio': round(100 * int(result['statistics']['likeCount']) / (
-                        int(result['statistics']['dislikeCount']) + int(result['statistics']['likeCount'])), 1),
+                    int(result['statistics']['dislikeCount']) + int(result['statistics']['likeCount'])), 1),
             'videoUrl': 'https://www.youtube.com/watch?v=' + result['id']
         }
 

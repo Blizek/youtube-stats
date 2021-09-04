@@ -5,7 +5,12 @@
     <title>{{ name }}'s total views</title>
 </head>
 <body>
-    UPDATE DATE: {{ date }}
-    TOTAL VIEWS: {{ views }}
+    <h3>{{ name }}'s total views</h3>
+    DATE        VIEWS
+    {% if views_data %}
+        {% for data in views_data %}
+            <p>{{ data.update_date }}        {{ data.views_value }}</p>
+        {% endfor %}
+    {% endif %}
 </body>
 </html>

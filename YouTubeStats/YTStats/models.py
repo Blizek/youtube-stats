@@ -18,4 +18,13 @@ class Subscriptions(models.Model):
     update_date = models.DateTimeField('update date')
 
     def __str__(self):
-        return str(self.subs_value)
+        return str(self.subs_id) + " " + str(self.subs_value) + " " + str(self.update_date)
+
+
+class Views(models.Model):
+    views_id = models.ForeignKey(Channel, on_delete=models.CASCADE)
+    views_value = models.IntegerField(default=0)
+    update_date = models.DateTimeField('update date')
+
+    def __str__(self):
+        return str(self.views_id) + " " + str(self.views_value) + " " + str(self.update_date)

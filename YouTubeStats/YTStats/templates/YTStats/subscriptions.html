@@ -5,7 +5,12 @@
     <title>{{ name }}'s subscriptions</title>
 </head>
 <body>
-    UPDATE DATE: {{ date }}
-    SUBSCRIPTIONS: {{ subs }}
+    <h3>{{ name }}'s subscriptions data</h3>
+    DATE        SUBSCRIPTIONS VALUE
+    {% if subscriptions_data %}
+        {% for data in subscriptions_data %}
+            <p>{{ data.update_date }}        {{ data.subs_value }}</p>
+        {% endfor %}
+    {% endif %}
 </body>
 </html>
