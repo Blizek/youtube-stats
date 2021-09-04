@@ -2,7 +2,7 @@ import requests
 from datetime import datetime
 
 from django.utils import timezone
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound
 from django.template import loader
 from django.conf import settings
 from django.shortcuts import render
@@ -97,6 +97,7 @@ def search(request):
 
 def channel(request, id):
     channel_url = 'https://www.googleapis.com/youtube/v3/channels'
+    search_url = 'https://www.googleapis.com/youtube/v3/search'
 
     yt_id_db = Channel.objects.get(pk=id).yt_id
     channel_name = Channel.objects.get(pk=id).name
@@ -117,13 +118,31 @@ def channel(request, id):
         'thumbnail': result['snippet']['thumbnails']['default']['url'],
         'views': add_commas(str(result['statistics']['viewCount'])),
         'subscriptions': add_prefix(int(result['statistics']['subscriberCount'])),
-        'uploads': add_commas(str(result['statistics']['videoCount']))
+        'uploads': add_commas(str(result['statistics']['videoCount'])),
+        'lastVideoID': ""
     }
 
     try:
         channel_data['country'] = str(result['snippet']['country'])
     except KeyError:
         channel_data['country'] = ""
+
+    search_params = {
+        'key': settings.YOUTUBE_DATA_API_KEY,
+        'part': 'snippet',
+        'channelId': yt_id_db,
+        'maxResults': 1,
+        'type': 'video',
+        'order': 'date',
+        'q': channel_name,
+    }
+
+    r_search = requests.get(search_url, params=search_params)
+
+    result_search = r_search.json()
+
+    if result_search['pageInfo']['totalResults'] != 0:
+        channel_data['lastVideoID'] = result_search['items'][0]['id']['videoId']
 
     context = {
         'name': channel_name,

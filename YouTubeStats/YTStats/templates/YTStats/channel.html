@@ -18,5 +18,7 @@
         <button><a href="{% url 'YouTubeStats:views' id %}">TOTAL VIEWS</a></button>
         <button><a href="{% url 'YouTubeStats:videos' id 'date' %}">USER VIDEOS</a></button>
     </p>
+    <p>USERS RECENT VIDEO</p>
+    <iframe width="340" height="191" src="https://www.youtube.com/embed/{{channel.lastVideoID}}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </body>
 </html>
