@@ -10,5 +10,6 @@ urlpatterns = [
     path('adding/<str:yt_id>/', views.adding_channel, name='adding_channel'),
     path('channel/<int:id>/subscriptions/', views.subscriptions, name='subscriptions'),
     path('channel/<int:id>/views/', views.views, name='views'),
-    path('channel/<int:id>/videos/<str:type_of_sort>/', views.videos, name='videos')
+    path('channel/<int:id>/videos/<str:type_of_sort>/', views.videos, name='videos'),
+    path('video/<int:id>/<str:yt_id>/', views.video_stats, name='video_stats'),
 ]

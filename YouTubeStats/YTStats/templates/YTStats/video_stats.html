@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}'s video stats</title>
+</head>
+<body>
+    <p>
+        <button><a href="{% url 'YouTubeStats:channel' id %}">Back to overview</a></button>
+        <button><a href="{% url 'YouTubeStats:videos' id 'date' %}">Back to videos</a></button>
+        <h3>{{ title }}'s video stats</h3>
+        <p>DATE     VIEWS   VIEWS DIFFERENCE   LIKES   LIKES DIFFERENCE     COMMENTS     COMMENTS DIFFERENCE</p>
+        {% if video_stats %}
+            {% for data in video_stats %}
+                <p>{{ data.update }}    {{ data.views }}    {{ data.views_difference }}    {{ data.likes }}    {{ data.likes_difference }}   {{ data.comments }}     {{ data.comments_difference }}</p>
+            {% endfor %}
+        {% endif %}
+    </p>
+</body>
+</html>

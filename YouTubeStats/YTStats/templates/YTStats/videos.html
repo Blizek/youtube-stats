@@ -5,6 +5,7 @@
     <title>{{ name }}'s videos</title>
 </head>
 <body>
+    <button><a href="{% url 'YouTubeStats:channel' id %}">Back to overview</a></button>
     <h3>50 LATEST YOUTUBE VIDEOS BY {{ name }}</h3>
     <p>
         <button><a href="{% url 'YouTubeStats:videos' id 'date' %}">50 Latest Videos</a></button>
@@ -19,7 +20,8 @@
         {% for video in videos %}
         <li>
             <img src="{{ video.thumbnail }}" width="120px" height="90px">
-            {{ video.publishedAt }}     <a href="{{ video.videoUrl }}">{{ video.title }}</a>    {{ video.views }}     {{ video.likesRatio }}%    {{ video.comments }}
+            {{ video.publishedAt }}     <a href="{{ video.videoUrl }}">{{ video.title }}</a>    {{ video.views }}    {{ video.comments }}
+            <button><a href="{% url 'YouTubeStats:video_stats' id video.ytID %}">SHOW VIDEO STATS</a></button>
         </li>
         {% endfor %}
     </ul>

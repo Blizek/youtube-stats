@@ -15,12 +15,16 @@ def subs_sort(channel):
 
 
 def add_commas(views):
-    views = views[::-1]
+    abs_views = str(abs(int(views)))
+    abs_views = abs_views[::-1]
     iterations = []
-    for i in range(3, len(views) + 3, 3):
-        iterations.append(views[i - 3: i][::-1])
-    views = ','.join(iterations[::-1])
-    return views
+    for i in range(3, len(abs_views) + 3, 3):
+        iterations.append(abs_views[i - 3: i][::-1])
+    abs_views = ','.join(iterations[::-1])
+    if int(views) >= 0:
+        return abs_views
+    else:
+        return str(-1 * int(abs_views))
 
 
 def covert_date(date):
@@ -282,17 +286,30 @@ def subscriptions(request, id):
 
     converted_data = []
 
-    for subscription_data in c.subscriptions_set.all():
+    all_subs = c.subscriptions_set.all()
+    for i in range(len(all_subs)):
+        subscription_data = all_subs[i]
         data = {
             'subs_value': add_prefix(subscription_data.subs_value),
             'update_date': convert_timezone(subscription_data.update_date)
         }
+        if i == 0:
+            data['difference'] = '+' + add_prefix(subscription_data.subs_value)
+        else:
+            difference = subscription_data.subs_value - all_subs[i - 1].subs_value
+            if difference > 0:
+                data['difference'] = '+' + str(add_prefix(difference))
+            elif difference == 0:
+                data['difference'] = '0'
+            else:
+                data['difference'] = add_prefix(difference)
 
         converted_data.append(data)
 
     context = {
         'name': channel_name,
-        'subscriptions_data': converted_data
+        'subscriptions_data': converted_data,
+        'id': id
     }
 
     return render(request, 'YTStats/subscriptions.html', context)
@@ -319,17 +336,30 @@ def views(request, id):
 
     converted_data = []
 
-    for views_data in c.views_set.all():
+    all_views = c.views_set.all()
+    for i in range(len(all_views)):
+        views_data = all_views[i]
         data = {
             'views_value': add_commas(str(views_data.views_value)),
             'update_date': convert_timezone(views_data.update_date)
         }
+        if i == 0:
+            data['difference'] = '+' + add_commas(str(views_data.views_value))
+        else:
+            difference = views_data.views_value - all_views[i - 1].views_value
+            if difference > 0:
+                data['difference'] = '+' + add_commas(str(difference))
+            elif difference == 0:
+                data['difference'] = '0'
+            else:
+                data['difference'] = add_commas(str(difference))
 
         converted_data.append(data)
 
     context = {
         'name': channel_name,
-        'views_data': converted_data
+        'views_data': converted_data,
+        'id': id
     }
 
     return render(request, 'YTStats/views.html', context)
@@ -381,9 +411,8 @@ def videos(request, id, type_of_sort):
             'thumbnail': result['snippet']['thumbnails']['default']['url'],
             'views': add_commas(result['statistics']['viewCount']),
             'comments': add_commas(result['statistics']['commentCount']),
-            'likesRatio': round(100 * int(result['statistics']['likeCount']) / (
-                    int(result['statistics']['dislikeCount']) + int(result['statistics']['likeCount'])), 1),
-            'videoUrl': 'https://www.youtube.com/watch?v=' + result['id']
+            'videoUrl': 'https://www.youtube.com/watch?v=' + result['id'],
+            'ytID': result['id']
         }
 
         videos_data_list.append(video_data)
@@ -395,3 +424,83 @@ def videos(request, id, type_of_sort):
     }
 
     return render(request, 'YTStats/videos.html', context)
+
+
+def video_stats(request, id, yt_id):
+    video_url = 'https://www.googleapis.com/youtube/v3/videos'
+
+    video_params = {
+        'key': settings.YOUTUBE_DATA_API_KEY,
+        'part': 'snippet, statistics',
+        'id': yt_id
+    }
+
+    r = requests.get(video_url, params=video_params)
+
+    result = r.json()['items'][0]
+
+    c = Channel.objects.get(pk=id)
+    c.video_set.create(video_id=id,
+                       video_youtube_id=yt_id,
+                       video_views=result['statistics']['viewCount'],
+                       video_likes=result['statistics']['likeCount'],
+                       video_comments=result['statistics']['commentCount'],
+                       update_date=timezone.now()
+                       )
+
+    converted_data = []
+
+    all_stats = c.video_set.all()
+
+    this_video_data = [video for video in all_stats if video.video_youtube_id == yt_id]
+    for i in range(len(this_video_data)):
+        video_data = this_video_data[i]
+        data = {
+            'views': add_commas(str(video_data.video_views)),
+            'likes': add_commas(str(video_data.video_likes)),
+            'comments': add_commas(str(video_data.video_comments)),
+            'update': convert_timezone(str(video_data.update_date)),
+            'views_difference': "",
+            'likes_difference': "",
+            'comments_difference': ""
+        }
+
+        if i == 0:
+            data['views_difference'] = '+' + add_commas(str(video_data.video_views))
+            data['likes_difference'] = '+' + add_commas(str(video_data.video_likes))
+            data['comments_difference'] = '+' + add_commas(str(video_data.video_comments))
+        else:
+            views_difference = video_data.video_views - this_video_data[i - 1].video_views
+            likes_difference = video_data.video_likes - this_video_data[i - 1].video_likes
+            comments_difference = video_data.video_comments - this_video_data[i - 1].video_comments
+
+            if views_difference > 0:
+                data['views_difference'] = '+' + add_commas(str(views_difference))
+            elif views_difference == 0:
+                data['views_difference'] = '0'
+            else:
+                data['views_difference'] = add_commas(str(views_difference))
+
+            if likes_difference > 0:
+                data['likes_difference'] = '+' + add_commas(str(likes_difference))
+            elif likes_difference == 0:
+                data['likes_difference'] = '0'
+            else:
+                data['likes_difference'] = add_commas(str(likes_difference))
+
+            if comments_difference > 0:
+                data['comments_difference'] = '+' + add_commas(str(comments_difference))
+            elif comments_difference == 0:
+                data['comments_difference'] = '0'
+            else:
+                data['comments_difference'] = add_commas(str(comments_difference))
+
+        converted_data.append(data)
+
+    context = {
+        'title': result['snippet']['title'],
+        'video_stats': converted_data,
+        'id': id
+    }
+
+    return render(request, 'YTStats/video_stats.html', context)

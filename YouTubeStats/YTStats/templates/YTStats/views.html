@@ -5,11 +5,12 @@
     <title>{{ name }}'s total views</title>
 </head>
 <body>
+    <button><a href="{% url 'YouTubeStats:channel' id %}">Back to overview</a></button>
     <h3>{{ name }}'s total views</h3>
-    DATE        VIEWS
+    DATE        VIEWS        DIFFERENCE
     {% if views_data %}
         {% for data in views_data %}
-            <p>{{ data.update_date }}        {{ data.views_value }}</p>
+            <p>{{ data.update_date }}        {{ data.views_value }}        {{ data.difference }}</p>
         {% endfor %}
     {% endif %}
 </body>
